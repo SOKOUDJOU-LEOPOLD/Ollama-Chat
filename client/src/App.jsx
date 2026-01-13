@@ -1,35 +1,57 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState } from "react";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [text, setText] = useState(""); // for response
+  const [messages, setMessages] = useState([]); // for inputs
+  const [loading, setLoading] = useState(false);
+
+  async function sendMessage(e) {
+    e.preventDefault();
+    setLoading(true);
+    if (text.trim() === "") return;
+    setMessages((prev) => [...prev, { role: "user", content: text }]);
+    setText("");
+
+    const res = await fetch("http://localhost:5001/ai", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ message: text }),
+    });
+
+    const data = await res.json();
+    setMessages((prev) => [...prev, { role: "ai", content: data.reply }]);
+    setLoading(false);
+  }
 
   return (
-    <>
+    <div>
       <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+        {messages.map((msg, idx) => (
+          <div key={idx}>
+            <strong>{msg.role}:</strong> {msg.content}
+          </div>
+        ))}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
+
+      {loading && <p>loading...</p>}
+
+      <div>
+        <form onSubmit={sendMessage}>
+          <input
+            type="text"
+            placeholder="Enter Message"
+            onChange={(e) => {
+              setText(e.target.value); // update text
+            }}
+            value={text} // show text
+          />
+          <button type="submit">Send</button>
+        </form>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </div>
+  );
 }
 
-export default App
+export default App;

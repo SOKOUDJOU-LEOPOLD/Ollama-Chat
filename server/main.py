@@ -10,7 +10,7 @@ def ai():
     try:
         request_json = request.get_json()
         if request_json and "message" in request_json:
-            response: ChatResponse = chat(model='llama3', messages = [
+            response: ChatResponse = chat(model='llama3.2', messages = [
                 {
                     'role' : 'user',
                     'content': request_json["message"]
